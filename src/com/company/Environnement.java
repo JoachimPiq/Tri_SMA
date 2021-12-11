@@ -151,7 +151,7 @@ public class Environnement {
     }
 
 
-    public Position positionCaseWithMostSignalAround(Agent agent) {
+    public Position positionOfCaseWithMostSignalAroundAgent(Agent agent) {
         float maxSignal = -1;
         Position res = new Position(-1,-1);
 
@@ -170,7 +170,7 @@ public class Environnement {
         return res;
     }
 
-    public Agent agentNeedingHelp(Agent agent) {
+    public Agent agentNeedingHelpAround(Agent agent) {
         for (int x = -1; x <= 1;x++) {
             for (int y = -1; y <= 1; y++) {
                 Position potPos = new Position(agent.getPosition().x + x, agent.getPosition().y + y);

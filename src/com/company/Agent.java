@@ -21,6 +21,7 @@ public class Agent {
     Agent esclave;
     Agent maitre;
 
+    boolean hasMove;
     public Agent(Environnement environnement, float kP, float kM, int iDistanceParPas, int tailleMemoire, float erreurPerception, int distanceSignal, int timeToWaitForHelp) {
         this.environnement = environnement;
         this.position = environnement.attribuerPosition(this);
@@ -35,6 +36,7 @@ public class Agent {
         this.distanceSignal = distanceSignal;
         this.waitingSince = -1;
         this.timeToWaitForHelp = timeToWaitForHelp;
+        this.hasMove = false;
         freqMap.put('A',0.0);
         freqMap.put('B',0.0);
         freqMap.put('C',0.0);
@@ -44,8 +46,10 @@ public class Agent {
 
     public void memorize(Bloc bloc){
         // Regarde le bloc actuel pour l'ajouter à la mémoire et réduit la mémoire si on dépasse les 10
-        memoire += String.valueOf(bloc.getType());
-        if (memoire.length()>10) memoire = memoire.substring(1,11);
+        if(hasMove) {
+            memoire += String.valueOf(bloc.getType());
+            if (memoire.length() > 10) memoire = memoire.substring(1, 11);
+        }
     }
 
 
@@ -62,15 +66,15 @@ public class Agent {
                 // Si l'agent ne porte pas de bloc
                 if (blocPorte.isNull()) {
                     //Si un agent attend de l'aide autour (1 case) on devient son esclave
-                    if (environnement.agentNeedingHelp(this) != null) {
-                        maitre = environnement.agentNeedingHelp(this);
+                    if (environnement.agentNeedingHelpAround(this) != null) {
+                        maitre = environnement.agentNeedingHelpAround(this);
                         maitre.esclave = this;
                         environnement.setAgentToNull(this);
                     }
                     // Si il y a un bloc là où se trouve l'agent.
                     else if (!blocPerception.isNull()) {
                         if (blocPerception.getType() == 'C')
-                            handleTypeCBloc(casePerception);
+                            pickUpTypeC(casePerception);
                         else pickUp(blocPerception);
 
                     }
@@ -110,7 +114,7 @@ public class Agent {
         }
     }
 
-    private void handleTypeCBloc(Case casePerception) {
+    private void pickUpTypeC(Case casePerception) {
 
         float fequenceBloc = getFrequency(casePerception.getBloc());
         float probabilitePrise = kP / (kP + fequenceBloc);
@@ -125,17 +129,21 @@ public class Agent {
 
 
     private void move(Case casePerceptioon){
+        hasMove = false;
         //Si l'agent percoit un signal, se dirige vers la où le signal est le plus fort,
         //Il ne percoit que dans un rayon d'action de 1 et se déplace donc que de un.
         if (blocPorte == null && casePerceptioon.getSignal() !=0){
-            Position newPos = environnement.positionCaseWithMostSignalAround(this);
+            Position newPos = environnement.positionOfCaseWithMostSignalAroundAgent(this);
             if (!environnement.getCaseAtPosition(newPos).isAgent()) {
                 environnement.moveToNewPosition(this, newPos);
                 position = newPos;
+                hasMove = true;
             }
             else {
                 Deplacement deplacement = new Deplacement(1);
                 newPos = deplacement.calculerNewPosition(position,environnement);
+
+                if (newPos!=position) hasMove = true;
 
                 environnement.moveToNewPosition(this,newPos);
                 position = newPos;
@@ -146,7 +154,7 @@ public class Agent {
 
             Deplacement deplacement = new Deplacement(iDistanceParPas);
             Position newPos = deplacement.calculerNewPosition(position,environnement);
-
+            if (newPos != position) hasMove = true;
             environnement.moveToNewPosition(this,newPos);
             position = newPos;
         }

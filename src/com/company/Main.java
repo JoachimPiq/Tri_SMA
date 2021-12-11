@@ -9,7 +9,7 @@ public class Main {
         int tailleY = 50;
         int nbBlocA = 200; //nb de bloc A
         int nbBlocB = 200; //nb de bloc B
-        int nbBlocC = 0; // nb de bloc C
+        int nbBlocC = 200; // nb de bloc C
         int nbAgent = 150;//nbagent
         float kP = 0.1f; // K plus
         float kM = 0.3f; //K moins
