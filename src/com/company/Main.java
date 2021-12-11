@@ -9,7 +9,7 @@ public class Main {
         int tailleY = 50;
         int nbBlocA = 200; //nb de bloc A
         int nbBlocB = 200; //nb de bloc B
-        int nbBlocC = 200; // nb de bloc C
+        int nbBlocC = 0; // nb de bloc C
         int nbAgent = 150;//nbagent
         float kP = 0.1f; // K plus
         float kM = 0.3f; //K moins
@@ -17,7 +17,7 @@ public class Main {
         int tailleMemoire = 15;
         float erreurPerception = 0f;
         float evaporationSignal = 0.02f;
-        int distanceSignal = 15;
+        int distanceSignal = 10;
         int timeToWaitForHelp =200;
         Environnement monEnvironnment = new Environnement(tailleX, tailleY, nbBlocA, nbBlocB, nbBlocC,evaporationSignal);
         Fenetre fenetre = new Fenetre(monEnvironnment);

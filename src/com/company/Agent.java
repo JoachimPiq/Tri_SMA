@@ -105,7 +105,7 @@ public class Agent {
             }
         } else {
             //Si on a un esclave, on ramasse le bloc.
-            blocPorte = environnement.pickBlocAtPosition(position);
+            blocPorte = environnement.pickBLoc(this);
             waitingSince =-1;
         }
     }
@@ -130,23 +130,24 @@ public class Agent {
         if (blocPorte == null && casePerceptioon.getSignal() !=0){
             Position newPos = environnement.positionCaseWithMostSignalAround(this);
             if (!environnement.getCaseAtPosition(newPos).isAgent()) {
-                environnement.moveAgent(this, newPos);
+                environnement.moveToNewPosition(this, newPos);
                 position = newPos;
             }
             else {
                 Deplacement deplacement = new Deplacement(1);
                 newPos = deplacement.calculerNewPosition(position,environnement);
 
-                environnement.moveAgent(this,newPos);
+                environnement.moveToNewPosition(this,newPos);
                 position = newPos;
             }
         }else
         //Sinon l'agent se déplace dans une direction aléatoire, d'une distance aléatoire entre 1 et TailleDeplacementMax
         {
+
             Deplacement deplacement = new Deplacement(iDistanceParPas);
             Position newPos = deplacement.calculerNewPosition(position,environnement);
 
-            environnement.moveAgent(this,newPos);
+            environnement.moveToNewPosition(this,newPos);
             position = newPos;
         }
     }
@@ -174,7 +175,7 @@ public class Agent {
         probabilitePrise *= probabilitePrise;
         if (rand.nextFloat() < probabilitePrise) {
             //Prendre le bloc à la position souhaité
-            blocPorte = environnement.pickBlocAtPosition(position);
+            blocPorte = environnement.pickBLoc(this);
             return true;
         }
         return false;

@@ -1,5 +1,4 @@
 package com.company;
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Environnement {
@@ -82,7 +81,8 @@ public class Environnement {
         return matrice[pos.x][pos.y];
     }
 
-    public Bloc pickBlocAtPosition(Position pos){
+    public Bloc pickBLoc(Agent agent){
+        Position pos = agent.getPosition();
         Bloc bloc =matrice[pos.x][pos.y].getBloc();
 
         matrice[pos.x][pos.y].bloc = new Bloc();
@@ -109,7 +109,7 @@ public class Environnement {
     }
 
 
-    public void moveAgent(Agent agent, Position newPos){
+    public void moveToNewPosition(Agent agent, Position newPos){
         matrice[agent.getPosition().x][agent.getPosition().y].setAgent(null);
 
         matrice[newPos.x][newPos.y].setAgent(agent);
