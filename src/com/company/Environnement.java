@@ -11,14 +11,14 @@ public class Environnement {
         this.tailleX = tailleX;
         this.tailleY = tailleY;
         this.evaportaionSignal = evaportaionSignal;
-//        Création d'une matrice
+        //Création d'une matrice
         matrice = new Case[tailleX][tailleY];
         for (int x = 0; x < tailleX; x++) {
             for (int y = 0; y < tailleY; y++) {
                 matrice[x][y] = new Case();
             }
         }
-//Création des différentes blocs
+        //Création des différentes blocs
         for (int i = 0; i < nbA; i++) {
             Position pos = getRandomEmptyPosition();
            matrice[pos.x][pos.y].setBlocType('A');
@@ -36,20 +36,9 @@ public class Environnement {
         }
     }
 
-
-    public Case[][] getMatrice(){
-        return matrice;
-    }
-    public int getTailleX() {
-        return tailleX;
-    }
-
-
-    public int getTailleY() {
-        return tailleY;
-    }
-
-
+    /**
+     * Mise à jour de l'interface graphique
+     */
     public void setAllColor(){
         for (int i =0; i<getTailleY();i++)
         {
@@ -59,6 +48,10 @@ public class Environnement {
         }
     }
 
+    /**
+     * Retourne la position d'une case aléatoire, sans bloc de l'environnement
+     * @return Position d'une case vide de l'environnment
+     */
     public Position getRandomEmptyPosition(){
         int posX,posY;
         do {
@@ -68,19 +61,33 @@ public class Environnement {
         return new Position(posX,posY);
     }
 
-
-    public Position attribuerPosition(Agent agent){
+    /**
+     * Place l'agent sur une case vide aléatoire de l'environnement
+     * @param agent l'agent que l'on veut positioner sur l'environnement
+     * @return retourne la position atribué à l'agent
+     */
+    public Position setPosition(Agent agent){
         Position pos = getRandomEmptyPosition();
         matrice[pos.x][pos.y].setAgent(agent);
         return pos;
 
     }
 
+    /**
+     * Fonction représentant la perception des agents
+     * @param agent L'agent souhaitant obtenir sa perception de l'environement
+     * @return la Case sur laquelle l'agent se trouve
+     */
     public Case perception(Agent agent){
         Position pos = agent.getPosition();
         return matrice[pos.x][pos.y];
     }
 
+    /**
+     * Fonction permettant à un agent de ramasser le bloc sur lequel il se trouve
+     * @param agent l'agent qui souhaite ramasser un bloc
+     * @return le bloc qui est ramassé
+     */
     public Bloc pickBLoc(Agent agent){
         Position pos = agent.getPosition();
         Bloc bloc =matrice[pos.x][pos.y].getBloc();
@@ -90,6 +97,11 @@ public class Environnement {
         return bloc;
     }
 
+    /**
+     * Permet de récuper la case à la position souhaité
+     * @param pos la position de la case que l'on souhaite récupérer
+     * @return la case à la position souhaité
+     */
     public Case getCaseAtPosition(Position pos){
         if ((pos.x>= 0 && pos.x < this.getTailleX()) && (pos.y>=0 && pos.y < this.getTailleY() ))
             return matrice[pos.x][pos.y];
@@ -97,18 +109,22 @@ public class Environnement {
             return null;
     }
 
+    /**
+     * Permet à un agent de déposer un bloc là où il se trouve
+     * @param agent l'agent qui souhaite poser le bloc
+     */
     public void putBlock(Agent agent){
         Position pos = agent.getPosition();
         matrice[pos.x][pos.y].bloc= agent.getBlocPorte();
 
     }
 
-    public void setAgentToNull(Agent agent){
-        matrice[agent.getPosition().x][agent.getPosition().y].setAgent(null);
 
-    }
-
-
+    /**
+     * Permet à un agent de se déplacer à la position qu'il souhaite
+     * @param agent l'agent qui se déplace
+     * @param newPos la nouvelle position de l'agent
+     */
     public void moveToNewPosition(Agent agent, Position newPos){
         matrice[agent.getPosition().x][agent.getPosition().y].setAgent(null);
 
@@ -116,7 +132,10 @@ public class Environnement {
 
     }
 
-
+    /**
+     * Permet à un agent d'envoyer un signal d'appel à l'aide
+     * @param agent l'agent qui envoi le signal
+     */
     public void sendSignal(Agent agent){
         float signalOriginal = 1f;
         float signal = signalOriginal;
@@ -137,6 +156,9 @@ public class Environnement {
         }
     }
 
+    /**
+     * Permet de faire décroitre les signaux de l'environnement d'un pourcentage défini par evaporationSignal
+     */
     public void updateSignal(){
         for(int i = 0 ;i<getTailleX();i++){
             for(int j = 0; j< getTailleY(); j++){
@@ -150,7 +172,11 @@ public class Environnement {
         }
     }
 
-
+    /**
+     * Permet à un agent d'obtenir la position de la case qui l'entour directement avec le signal le plus fort
+     * @param agent l'agent qui souhaite obtenir la case
+     * @return la position de la case avec le plus fort signal autour de l'agent
+     */
     public Position positionOfCaseWithMostSignalAroundAgent(Agent agent) {
         float maxSignal = -1;
         Position res = new Position(-1,-1);
@@ -170,6 +196,12 @@ public class Environnement {
         return res;
     }
 
+    /**
+     * Permet à un agent d'obtenir un agent qui aurait besoin d'aide dans son entourage direct, s'il n'y en a pas =
+     * retourne null.
+     * @param agent l'agent effectuant la recherche
+     * @return un agent qui a besoin d'aide, ou null
+     */
     public Agent agentNeedingHelpAround(Agent agent) {
         for (int x = -1; x <= 1;x++) {
             for (int y = -1; y <= 1; y++) {
@@ -181,4 +213,20 @@ public class Environnement {
         }
         return null;
     }
+    //Getter Setter
+    public Case[][] getMatrice(){
+        return matrice;
+    }
+    public int getTailleX() {
+        return tailleX;
+    }
+
+    public int getTailleY() {
+        return tailleY;
+    }
+    public void setAgentToNull(Agent agent){
+        matrice[agent.getPosition().x][agent.getPosition().y].setAgent(null);
+
+    }
+
 }

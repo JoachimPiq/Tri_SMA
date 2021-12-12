@@ -18,6 +18,9 @@ public class Case extends JPanel {
 
     }
 
+    /**
+     * Interface graphique
+     */
     void setColor(){
         switch (bloc.getType()) {
             case 'A' -> this.setBackground(Color.red);

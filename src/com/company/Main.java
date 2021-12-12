@@ -14,14 +14,20 @@ public class Main {
         float kP = 0.1f; // K plus
         float kM = 0.3f; //K moins
         int npPas = 1 ; // nombre de pas des agents
-        int tailleMemoire = 15;
-        float erreurPerception = 0f;
-        float evaporationSignal = 0.02f;
-        int distanceSignal = 10;
-        int timeToWaitForHelp =200;
+        int tailleMemoire = 15; // taille de la mémoire des agents
+        float erreurPerception = 0f; // Erreur de perception des agents 0.1 : 10% de chance de confondre les blocs.
+        float evaporationSignal = 0.02f; // Evaporation du signal par tour
+        int distanceSignal = 10; //Distance de propagation des signaux d'aide
+        int timeToWaitForHelp =200; //Temps d'attente des agents pour de l'aide quand il trouve un bloc C
+
+        //Génération de l'environnemnt
         Environnement monEnvironnment = new Environnement(tailleX, tailleY, nbBlocA, nbBlocB, nbBlocC,evaporationSignal);
+
+        //Interface graphique
         Fenetre fenetre = new Fenetre(monEnvironnment);
         monEnvironnment.setAllColor();
+
+        //Création des agents
         ArrayList<Agent> agents = new ArrayList<>();
         for (int i = 0; i < nbAgent; i++) {
             agents.add(new Agent(monEnvironnment, kP, kM, npPas, tailleMemoire, erreurPerception,distanceSignal,timeToWaitForHelp));
@@ -39,14 +45,11 @@ public class Main {
             }
             monEnvironnment.updateSignal();
 
-//            monEnvironnment.setAllColor();
-
-
 
 
             if (j%1000==0){
                 monEnvironnment.setAllColor();
-                System.out.println("Nombre de pas : "+j);
+                System.out.println("Nombre d'itérations : "+j);
 
             }
         }

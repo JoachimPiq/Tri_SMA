@@ -7,7 +7,7 @@ public class Bloc {
     public Bloc(){
         type = 'O';
     }
-    public Bloc(char type){this.type = type;}
+
     public char getType(){
         return type;
     }
@@ -15,6 +15,7 @@ public class Bloc {
     public void setType(char type) {
         this.type = type;
     }
+
     public boolean isNull(){
         if (type=='O') return true;
         else return false;

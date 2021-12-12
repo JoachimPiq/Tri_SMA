@@ -18,13 +18,13 @@ public class Agent {
     int distanceSignal;
     int timeToWaitForHelp;
     int waitingSince;
-    Agent esclave;
-    Agent maitre;
+    Agent slave;
+    Agent master;
 
     boolean hasMove;
     public Agent(Environnement environnement, float kP, float kM, int iDistanceParPas, int tailleMemoire, float erreurPerception, int distanceSignal, int timeToWaitForHelp) {
         this.environnement = environnement;
-        this.position = environnement.attribuerPosition(this);
+        this.position = environnement.setPosition(this);
         this.kP = kP;
         this.kM = kM;
         this.iDistanceParPas = iDistanceParPas;
@@ -43,20 +43,27 @@ public class Agent {
 
     }
 
-
+    /**
+     * permet à l'agent de mémoriser le bloc de la case sur laquelle il se trouve
+     * @param bloc le bloc qu'il mémorise
+     */
     public void memorize(Bloc bloc){
-        // Regarde le bloc actuel pour l'ajouter à la mémoire et réduit la mémoire si on dépasse les 10
+
         if(hasMove) {
+        // Ajoute le bloc à la mémoire, et suprimme le plus vieux bloc pour arriver à une mémoire
             memoire += String.valueOf(bloc.getType());
-            if (memoire.length() > 10) memoire = memoire.substring(1, 11);
+            if (memoire.length() > tailleMemoire) memoire = memoire.substring(1, 11);
         }
     }
 
-
+    /**
+     * Effectue un tour d'action de l'agent.
+     */
     public void action(){
-        if (!estEsclave() ) {
+        if (!isSlave() ) {
             //Perception du bloc.
             Case casePerception = environnement.perception(this);
+
             if(isWaiting()) waitForHelp(casePerception);
             else {
                 Bloc blocPerception = casePerception.getBloc();
@@ -67,11 +74,11 @@ public class Agent {
                 if (blocPorte.isNull()) {
                     //Si un agent attend de l'aide autour (1 case) on devient son esclave
                     if (environnement.agentNeedingHelpAround(this) != null) {
-                        maitre = environnement.agentNeedingHelpAround(this);
-                        maitre.esclave = this;
+                        master = environnement.agentNeedingHelpAround(this);
+                        master.slave = this;
                         environnement.setAgentToNull(this);
                     }
-                    // Si il y a un bloc là où se trouve l'agent.
+                    // S'il y a un bloc là où se trouve l'agent il tente de le ramasser.
                     else if (!blocPerception.isNull()) {
                         if (blocPerception.getType() == 'C')
                             pickUpTypeC(casePerception);
@@ -81,13 +88,13 @@ public class Agent {
                 }
                 //Si l'agent porte un bloc
                 else if (!blocPorte.isNull()) {
-                    // et que le bloc sur lequel il se trouve est null
+                    // et que le bloc sur lequel il se trouve est null il tente de poser son bloc
                     if (blocPerception.isNull()) {
                         putDown();
                     }
                 }
                 // Si l'agent n'est pas en attente, il peut se déplacer.
-                if (!isWaiting() && !estEsclave()) move(casePerception);
+                if (!isWaiting() && !isSlave()) move(casePerception);
             }
         }
 
@@ -95,8 +102,13 @@ public class Agent {
 
     }
 
+    /**
+     * Comportement des agents en attente d'aide pour un bloc de type C
+     * @param casePerception la case sur laquelle l'agent se trouve
+     */
     private void waitForHelp(Case casePerception){
-        if (!asUnEsclave()) {
+        //Si l'agent n'as pas encore reçu d'aide, il continue d'attendre.
+        if (!asASlave()) {
             waitingSince++;
             if (casePerception.getSignal() == 0) {
                 if (waitingSince > timeToWaitForHelp) {
@@ -114,12 +126,17 @@ public class Agent {
         }
     }
 
+    /**
+     * Comportement des agents qui tente de ramasser un bloc de type c
+     * @param casePerception la case sur laque il se trouve
+     */
     private void pickUpTypeC(Case casePerception) {
-
+        //On teste la probabilité
         float fequenceBloc = getFrequency(casePerception.getBloc());
         float probabilitePrise = kP / (kP + fequenceBloc);
         probabilitePrise *= probabilitePrise;
         if (rand.nextFloat() < probabilitePrise) {
+            //Si la probabilité est validée, l'agent se met en attente.
             waitingSince = 0;
             environnement.sendSignal(this);
         }
@@ -127,12 +144,15 @@ public class Agent {
     }
 
 
-
-    private void move(Case casePerceptioon){
+    /**
+     * Permet à l'agent de se déplacer
+     * @param casePerception la case sur laque il se trouve
+     */
+    private void move(Case casePerception){
         hasMove = false;
-        //Si l'agent percoit un signal, se dirige vers la où le signal est le plus fort,
-        //Il ne percoit que dans un rayon d'action de 1 et se déplace donc que de un.
-        if (blocPorte == null && casePerceptioon.getSignal() !=0){
+        //Si l'agent perçoit un signal, se dirige vers là où le signal est le plus fort
+        //Il ne percoit que dans un rayon de 1 et se déplace donc que de 1 case
+        if (blocPorte == null && casePerception.getSignal() !=0){
             Position newPos = environnement.positionOfCaseWithMostSignalAroundAgent(this);
             if (!environnement.getCaseAtPosition(newPos).isAgent()) {
                 environnement.moveToNewPosition(this, newPos);
@@ -140,6 +160,8 @@ public class Agent {
                 hasMove = true;
             }
             else {
+                //Si il y a un agent sur la case avec le signal le plus fort, l'agent se déplace d'une case de manière
+                //aléatoire, afin d'éviter les blocages.
                 Deplacement deplacement = new Deplacement(1);
                 newPos = deplacement.calculerNewPosition(position,environnement);
 
@@ -160,23 +182,34 @@ public class Agent {
         }
     }
 
+    /**
+     * Determine si il doit poser le bloc en fonction de la probabilité
+     * @return true si il pose le bloc, false sinon.
+     */
     private boolean putDown(){
         float fequenceBloc = getFrequency(blocPorte);
         float prob = fequenceBloc / (kM + blocPorte.getType());
-//        prob *= prob;
+//        prob *= prob; Rend la simulation beaucoup plus rapide et pas moins performante.
         if (rand.nextFloat() < prob) {
             environnement.putBlock(this);
             blocPorte = new Bloc();
-            if (asUnEsclave()){
-                esclave.setPosition(position);
-                esclave.maitre = null;
-                esclave = null;
+            // Si l'agent qui pose avait un esclave, ce dernier est relaché de ses obligations et reprend un comportement
+            // normal depuis cette position.
+            if (asASlave()){
+                slave.setPosition(position);
+                slave.master = null;
+                slave = null;
             }
             return true;
         }
         return false;
     }
 
+    /**
+     * Détermine si l'agent doit prendre le bloc en fonction de la probabilité
+     * @param blocPerception le bloc sur lequel il se trouve
+     * @return true si il prend le bloc, false sinon
+     */
     private boolean pickUp(Bloc blocPerception){
         float fequenceBloc = getFrequency(blocPerception);
         float probabilitePrise = kP / (kP + fequenceBloc);
@@ -190,7 +223,11 @@ public class Agent {
 
     }
 
-
+    /**
+     * Retourne la fréquence du bloc dans la mémoire
+     * @param bloc le bloc dont on veut la fréquence
+     * @return la fréquence du bloc
+     */
     public float getFrequency(Bloc bloc)
     {
         float count = 0;
@@ -203,6 +240,31 @@ public class Agent {
         return count/tailleMemoire;
     }
 
+    /**
+     *
+     * @return true si l'agent à un maitre
+     */
+    public boolean isSlave() {
+        return master != null;
+    }
+
+    /**
+     *
+     * @return true si l'agent à un esclave
+     */
+    public boolean asASlave(){
+        return slave != null;
+    }
+
+    /**
+     *
+     * @return true si l'agent attend de l'aide.
+     */
+    public boolean isWaiting() {
+        return waitingSince!=-1;
+    }
+
+    //getter setter.
     public Bloc getBlocPorte() {
         return blocPorte;
     }
@@ -215,16 +277,6 @@ public class Agent {
         this.position = position;
     }
 
-    public boolean estEsclave() {
-        return maitre != null;
-    }
-
-    public boolean asUnEsclave(){
-        return esclave != null;
-    }
-    public boolean isWaiting() {
-        return waitingSince!=-1;
-    }
 
 
 }
